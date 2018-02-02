@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>IRc Chat</title>
+        <link type="text/css" src="style.css"
+    </head>
+ 
+    <body>
+        <h1>IRC OKLM</h1>
+
+        <form action="/" method="post" id="form_chat">
+            <input type="text" name="message" id="message" placeholder="Enter your message..." size="50" autofocus />
+            <select id="channel_choice">
+                <option value = "Horde">Horde</option>
+                <option value = "Alliance">Alliance</option>
+            </select>
+            <input type="submit" id="envoi_message" value="Envoyer" />
+        </form>
+        <!--<form action="/" method="post" id="form_channel">
+            <input type="text" name="chan_name" id="chan_name" placeholder="Channel name..." size="50" autofocus />
+            <input type="submit" id="create_channel" value="Create" />
+        </form>!-->
+        <button class="chan_j" type="button" id="j_H" value="Horde" >Join Horde</button>
+          <button  class="chan_j" type="button" id="j_A" value="Alliance">Join Alliance</button>
+        <button  class="chan_l" type="button" id="l_H" value="Horde" >Leave Horde</button>
+          <button class="chan_l" type="button" id="l_A" value="Alliance" >Leave Alliance</button>
+        <section id="chat_section">
+            
+        </section>
+
+
+       <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080');
+            var pseudo;
+            while (pseudo == "" || pseudo == null) {
+                pseudo = prompt("Please enter your username");
+              }
+            socket.emit('nouveau_client', pseudo);
+            document.title = pseudo + ' - ' + document.title;
+
+            socket.on('message', function(data) {
+                UpdateMsg(data.pseudo, data.message,data.channel)
+            })
+            
+             socket.on('nouveau_channel', function(data) {
+                $('#chat_section').prepend('<p><em>' + data.pseudo + ' joined '+data.channel+'!</em></p>');
+            })
+
+            socket.on('nouveau_client', function(pseudo) {
+                $('#chat_section').prepend('<p><em>' + pseudo + ' joined !</em></p>');
+            })
+            
+            socket.on('leave_channel_notif',function(data){
+                $('#chat_section').prepend('<p><em>' + pseudo + ' leaved '+data.channel+'!</em></p>');
+            })
+            
+            $('.chan_j').click(function(){
+                 socket.emit('create', {pseudo:pseudo,channel:$(this).val()});            
+            })
+             $('.chan_l').click(function(){
+                 console.log($(this))
+                 socket.emit('leave_channel', {pseudo:pseudo,channel:$(this).val()});            
+            })
+            
+            $('#form_chat').submit(function () {
+                var message = $('#message').val();
+                var channel = $('#channel_choice').val();
+                socket.emit('message', {message:message,channel:channel}); 
+                $('#message').val('').focus(); 
+                return false; 
+            });
+            
+            function UpdateMsg(pseudo,message,channel) {
+                $('#chat_section').prepend('<p><strong>'+channel +'/'+ pseudo + '</strong> ' + message + '</p>');
+            }
+        </script>
+    </body>
+</html>
