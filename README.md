@@ -1,1 +1,1 @@
-IRC Project
+IRC in NodeJs/ExpressJS & React/Angular
